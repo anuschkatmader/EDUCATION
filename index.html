@@ -222,7 +222,50 @@
     .consent-banner { grid-template-columns: 1fr; } .consent-actions { justify-content:stretch; } .consent-actions .btn { flex:1; }
     .ai-prompt h2 { font-size:21px; }
   }
-</style>
+
+  /* ── Hover popup for OT webform ── */
+  .hover-popup-wrapper { position: relative; display: inline-block; }
+  .hover-popup {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 340px;
+    min-height: 200px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    z-index: 100;
+    text-align: center;
+  }
+  .hover-popup::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 10px solid transparent;
+    border-top-color: #fff;
+  }
+  .hover-popup-wrapper:hover .hover-popup { display: block; }
+  .hover-popup .ot-open-webform {
+    background: var(--violet);
+    color: #fff;
+    border: 0;
+    border-radius: 999px;
+    padding: 12px 24px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: var(--font-body);
+  }
+  .hover-popup .ot-open-webform:hover { background: var(--brand); }
+
+  </style>
+<script src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js" data-id="89af9315-196c-45ad-88ea-1b8ec3fe5a51" worker="https://consent-api.onetrust.com"></script>
 </head>
 <body>
 <a class="skip-link" href="#content">Skip to content</a>
@@ -287,7 +330,13 @@
         <h2>AI-powered teaching tools are now available</h2>
         <p>Features like the AI feedback assistant and question generator can process student work. Before you switch them on for a class, review what data is used and make sure the required consent is in place — including parental consent for students under the age of consent.</p>
         <div class="cta">
-          <button class="btn btn-violet" onclick="openPreferenceCenter()">Review AI features &amp; consent</button>
+          <div class="hover-popup-wrapper">
+            <button class="btn btn-violet">Review AI features &amp; consent</button>
+            <div class="hover-popup">
+              <p style="font-size:14px;color:var(--ink);margin-bottom:14px;font-weight:600;">Manage your AI consent preferences</p>
+              <button class="ot-open-webform" id="bb185c98-dab5-42c9-97d9-550ef2d12a5a">Open web form</button>
+            </div>
+          </div>
           <button class="btn btn-ghost-light" onclick="showTab(null,'tab-collect'); openPreferenceCenter();">View class consent status</button>
         </div>
       </section>
