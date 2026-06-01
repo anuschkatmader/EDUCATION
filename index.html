@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#1b1d3a" />
+<title>itslearning — Teacher dashboard · AI features & consent (Sanoma Learning · UCPM demo)</title>
+
+<!-- ============================================================= -->
+<!--  ONETRUST UCPM INTEGRATION POINT #1 — SDK / AUTOBLOCK SCRIPTS  -->
+<!--  Replace the comments below with the real tags from the        -->
+<!--  OneTrust admin console (Implementation > Scripts).            -->
+<!--                                                                -->
+<!--  <script src="https://cdn.cookielaw.org/consent/{DATA-DOMAIN-SCRIPT}/OtAutoBlock.js"></script> -->
+<!--  <script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"                          -->
+<!--          type="text/javascript" charset="UTF-8"                                                -->
+<!--          data-domain-script="{DATA-DOMAIN-SCRIPT}"></script>                                    -->
+<!--  <script type="text/javascript">function OptanonWrapper() { }</script>                          -->
+<!--                                                                -->
+<!--  For the AI-purpose consent flows below, UCPM "Purposes" +     -->
+<!--  Consent Receipts are the relevant building blocks.            -->
+<!-- ============================================================= -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --ink: #1b1d3a;
+    --ink-soft: #5b5e7e;
+    --paper: #ffffff;
+    --canvas: #f3f4f9;
+    --line: #e6e7f0;
+    --line-soft: #eef0f6;
+    --brand: #ff4438;
+    --brand-deep: #d8281d;
+    --nav: #1b1d3a;
+    --nav-soft: #2a2d52;
+    --teal: #12b3a6;
+    --violet: #7a5cff;     /* AI accent */
+    --violet-soft: #f2efff;
+    --amber: #f6a623;
+    --blue: #2f6df0;
+    --green: #1faf6b;
+    --red: #e5484d;
+    --radius: 16px;
+    --shadow: 0 12px 34px rgba(27,29,58,.10);
+    --shadow-soft: 0 4px 16px rgba(27,29,58,.06);
+    --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+    --font-body: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-body); color: var(--ink); background: var(--canvas); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; }
+  .skip-link { position:absolute; left:-999px; top:0; z-index:999; background:var(--nav); color:#fff; padding:12px 18px; }
+  .skip-link:focus { left:0; }
+
+  .app { display: grid; grid-template-columns: 256px 1fr; min-height: 100vh; }
+
+  /* Sidebar */
+  aside.sidebar { background: var(--nav); color: #c7c9e6; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 22px 16px; gap: 6px; }
+  .brand { display: flex; align-items: center; gap: 11px; padding: 4px 8px 18px; }
+  .brand .mark { width: 34px; height: 34px; border-radius: 9px; background: var(--brand); position: relative; flex: none; }
+  .brand .mark::after { content:""; position:absolute; inset:10px auto auto 10px; width:14px; height:14px; border-radius:4px; background:#fff; }
+  .brand .name { font-family: var(--font-display); font-weight: 800; font-size: 19px; color: #fff; letter-spacing: -.02em; }
+  .brand .name small { display:block; font-family:var(--font-body); font-weight:600; font-size:10px; color:#8d90c4; letter-spacing:.05em; text-transform:uppercase; }
+  .nav-group-label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #6e72a8; padding: 14px 12px 6px; }
+  .nav-item { display: flex; align-items: center; gap: 13px; padding: 11px 12px; border-radius: 11px; color: #c7c9e6; font-weight: 600; font-size: 14.5px; transition: background .15s, color .15s; width: 100%; border: 0; background: none; text-align: left; }
+  .nav-item svg { flex: none; opacity: .85; }
+  .nav-item:hover { background: var(--nav-soft); color: #fff; }
+  .nav-item.active { background: #fff; color: var(--nav); }
+  .nav-item .badge { margin-left: auto; background: var(--brand); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+  .nav-item .ai-badge { margin-left: auto; background: var(--violet); color: #fff; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 999px; letter-spacing: .04em; }
+  .nav-spacer { flex: 1; }
+  .nav-help { border-top: 1px solid var(--nav-soft); padding-top: 12px; margin-top: 8px; }
+
+  /* Topbar */
+  .main { display: flex; flex-direction: column; min-width: 0; }
+  header.topbar { background: rgba(255,255,255,.9); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 18px; padding: 0 28px; height: 70px; }
+  .search { flex: 1; max-width: 460px; position: relative; }
+  .search input { width: 100%; border: 1px solid var(--line); background: var(--canvas); border-radius: 999px; padding: 11px 16px 11px 42px; font: inherit; font-size: 14.5px; color: var(--ink); }
+  .search input::placeholder { color: #9a9cbb; }
+  .search svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #9a9cbb; }
+  .top-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .top-icon { width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--line); background: #fff; display: grid; place-items: center; color: var(--ink); position: relative; }
+  .top-icon:hover { background: var(--canvas); }
+  .top-icon .dot { position: absolute; top: 9px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--brand); border: 2px solid #fff; }
+  .profile { display: flex; align-items: center; gap: 10px; padding: 5px 8px 5px 5px; border: 1px solid var(--line); border-radius: 999px; background: #fff; position: relative; }
+  .profile:hover { background: var(--canvas); }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,var(--blue),var(--teal)); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 14px; flex: none; }
+  .profile .who { text-align: left; line-height: 1.1; }
+  .profile .who b { font-size: 13.5px; display: block; }
+  .profile .who span { font-size: 11.5px; color: var(--ink-soft); }
+  .menu { position: absolute; right: 0; top: calc(100% + 10px); width: 256px; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 8px; display: none; z-index: 60; }
+  .menu.open { display: block; }
+  .menu .mi { display: flex; align-items: center; gap: 11px; padding: 10px 11px; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--ink); width: 100%; border: 0; background: none; text-align: left; }
+  .menu .mi:hover { background: var(--canvas); }
+  .menu .mi.privacy { color: var(--brand-deep); }
+  .menu .sep { height: 1px; background: var(--line); margin: 6px 4px; }
+
+  .content { padding: 30px 28px 64px; max-width: 1320px; }
+  .greeting { margin-bottom: 22px; display: flex; align-items: end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .greeting h1 { font-family: var(--font-display); font-weight: 800; font-size: 30px; letter-spacing: -.02em; }
+  .greeting p { color: var(--ink-soft); margin-top: 4px; font-size: 15px; }
+  .quick-add { display: inline-flex; align-items: center; gap: 9px; background: var(--ink); color: #fff; border: 0; border-radius: 999px; padding: 11px 18px; font-weight: 700; font-size: 14px; }
+  .quick-add:hover { background: var(--brand); }
+
+  .card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-soft); }
+  .card-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--line-soft); }
+  .card-head h2 { font-family: var(--font-display); font-weight: 700; font-size: 17px; display:flex; align-items:center; gap:9px; }
+  .card-head a, .card-head button.link { font-size: 13px; font-weight: 700; color: var(--brand-deep); background:none; border:0; }
+
+  /* AI consent prompt (hero banner inside page) */
+  .ai-prompt { background: linear-gradient(120deg, #221b4d, #3a2d8a 60%, #5b3fb0); color: #fff; border-radius: 20px; padding: 26px 28px; position: relative; overflow: hidden; margin-bottom: 24px; }
+  .ai-prompt::after { content:""; position:absolute; right:-60px; top:-60px; width:240px; height:240px; border-radius:50%; background:radial-gradient(circle,rgba(122,92,255,.6),transparent 70%); }
+  .ai-prompt .tag { display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,.16); padding:5px 12px; border-radius:999px; font-size:12px; font-weight:800; letter-spacing:.04em; margin-bottom:12px; }
+  .ai-prompt h2 { font-family:var(--font-display); font-weight:800; font-size:24px; letter-spacing:-.02em; max-width:30ch; }
+  .ai-prompt p { font-size:14.5px; opacity:.9; margin-top:8px; max-width:62ch; }
+  .ai-prompt .cta { margin-top:18px; display:flex; gap:12px; flex-wrap:wrap; position:relative; z-index:2; }
+  .btn { border: 0; border-radius: 999px; padding: 11px 20px; font-weight: 700; font-size: 14px; transition: transform .12s, background .2s, color .2s; white-space: nowrap; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: var(--ink); color: #fff; }
+  .btn-primary:hover { background: var(--brand); }
+  .btn-violet { background:#fff; color:#2b2065; }
+  .btn-violet:hover { background:#ede9ff; }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+  .btn-ghost:hover { background: var(--ink); color: #fff; }
+  .btn-ghost-light { background: transparent; color:#fff; border:1px solid rgba(255,255,255,.5); }
+  .btn-ghost-light:hover { background:rgba(255,255,255,.14); }
+
+  .grid-2 { display:grid; grid-template-columns: 1fr 360px; gap:24px; align-items:start; }
+
+  /* AI features list with consent status */
+  .feat { display:flex; gap:14px; padding:16px 20px; border-bottom:1px solid var(--line-soft); align-items:center; }
+  .feat:last-child { border-bottom:0; }
+  .feat .ic { width:42px; height:42px; border-radius:12px; background:var(--violet-soft); color:var(--violet); display:grid; place-items:center; flex:none; }
+  .feat .fx { flex:1; min-width:0; }
+  .feat .fx b { font-size:14.5px; }
+  .feat .fx p { font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+  .status { font-size:11.5px; font-weight:800; padding:4px 10px; border-radius:999px; white-space:nowrap; display:inline-flex; align-items:center; gap:6px; }
+  .status::before { content:""; width:7px; height:7px; border-radius:50%; }
+  .status.on { background:#e7f7ef; color:#0c7a47; } .status.on::before { background:var(--green); }
+  .status.off { background:#f0f1f6; color:#6b6e8c; } .status.off::before { background:#9a9cbb; }
+  .status.pending { background:#fff7e6; color:#9a6700; } .status.pending::before { background:var(--amber); }
+
+  .switch { position: relative; width: 46px; height: 26px; flex: none; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .track { position: absolute; inset: 0; background: #cdcfe0; border-radius: 999px; transition: background .2s; cursor: pointer; }
+  .switch .track::before { content:""; position:absolute; height:20px; width:20px; left:3px; top:3px; background:#fff; border-radius:50%; transition:transform .2s; }
+  .switch input:checked + .track { background: var(--violet); }
+  .switch input:checked + .track::before { transform: translateX(20px); }
+  .switch input:disabled + .track { opacity:.5; cursor:not-allowed; }
+
+  /* Class consent overview */
+  .cls { padding:16px 20px; border-bottom:1px solid var(--line-soft); }
+  .cls:last-child { border-bottom:0; }
+  .cls .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:9px; }
+  .cls .top b { font-size:14px; }
+  .cls .top span { font-size:12px; color:var(--ink-soft); }
+  .meter { height:9px; border-radius:999px; background:var(--line); overflow:hidden; display:flex; }
+  .meter i { height:100%; display:block; }
+  .meter i.ok { background:var(--green); } .meter i.pend { background:var(--amber); } .meter i.dec { background:var(--red); }
+  .legend { display:flex; gap:14px; margin-top:9px; font-size:11.5px; color:var(--ink-soft); }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { width:8px; height:8px; border-radius:50%; }
+
+  /* stat tiles */
+  .tiles { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+  .tile { background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow-soft); }
+  .tile .lbl { font-size:13px; color:var(--ink-soft); display:flex; align-items:center; gap:8px; }
+  .tile .big { font-family:var(--font-display); font-weight:800; font-size:30px; letter-spacing:-.02em; margin-top:8px; }
+  .tile .sub { font-size:12px; color:var(--ink-soft); margin-top:2px; }
+  .tile .big em { font-style:normal; font-size:16px; color:var(--ink-soft); }
+
+  /* roster */
+  .roster .r { display:flex; align-items:center; gap:12px; padding:12px 20px; border-bottom:1px solid var(--line-soft); }
+  .roster .r:last-child { border-bottom:0; }
+  .roster .ava { width:34px; height:34px; border-radius:50%; flex:none; display:grid; place-items:center; color:#fff; font-weight:700; font-size:12.5px; }
+  .roster .rn { flex:1; font-size:14px; }
+  .roster .rn span { display:block; font-size:11.5px; color:var(--ink-soft); }
+
+  /* ====== Consent placeholders (replace with OneTrust) ====== */
+  .consent-banner { position: fixed; left: 18px; right: 18px; bottom: 18px; z-index: 200; background: #fff; color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 18px 50px rgba(27,29,58,.22); padding: 20px 22px; display: grid; grid-template-columns: auto 1fr auto; gap: 18px; align-items: center; max-width: 1100px; margin-inline: auto; }
+  .consent-banner[hidden] { display: none; }
+  .consent-banner .bicon { width:46px; height:46px; border-radius:13px; background:var(--violet-soft); color:var(--violet); display:grid; place-items:center; flex:none; }
+  .consent-banner h3 { font-family: var(--font-display); font-size: 17px; margin-bottom: 4px; }
+  .consent-banner p { font-size: 13.5px; color: var(--ink-soft); max-width: 74ch; }
+  .consent-banner a { color: var(--brand-deep); font-weight: 600; text-decoration: underline; }
+  .consent-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+
+  dialog.pref-center { border: 0; border-radius: 20px; padding: 0; width: min(640px, 95vw); box-shadow: var(--shadow); }
+  dialog.pref-center::backdrop { background: rgba(27,29,58,.55); }
+  .pc-head { padding: 22px 24px 0; }
+  .pc-head .row { display: flex; justify-content: space-between; align-items: flex-start; }
+  .pc-head h3 { font-family: var(--font-display); font-size: 20px; display:flex; align-items:center; gap:9px; }
+  .pc-head p { font-size: 13px; color: var(--ink-soft); margin-top: 4px; max-width:58ch; }
+  .pc-tabs { display: flex; gap: 2px; margin-top: 16px; border-bottom: 1px solid var(--line); flex-wrap:wrap; }
+  .pc-tab { border: 0; background: none; padding: 12px 13px; font-weight: 700; font-size: 13.5px; color: var(--ink-soft); border-bottom: 3px solid transparent; margin-bottom: -1px; }
+  .pc-tab.active { color: var(--ink); border-color: var(--violet); }
+  .pc-body { padding: 6px 24px; max-height: 52vh; overflow: auto; }
+  .pc-panel { display: none; } .pc-panel.active { display: block; }
+  .pc-row { padding: 16px 0; border-bottom: 1px solid var(--line-soft); display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start; }
+  .pc-row:last-child { border-bottom: 0; }
+  .pc-row b { font-size: 14.5px; }
+  .pc-row p { font-size: 12.5px; color: var(--ink-soft); margin-top: 3px; }
+  .pc-row .legalbasis { font-size:11px; color:var(--violet); font-weight:700; margin-top:6px; display:inline-block; background:var(--violet-soft); padding:2px 8px; border-radius:6px; }
+  .pc-note { background: #fff7e6; border: 1px solid #ffe2a8; border-radius: 12px; padding: 12px 14px; font-size: 12.5px; color: #8a5a00; margin: 14px 0 4px; }
+  .pc-note.violet { background:var(--violet-soft); border-color:#d8cdff; color:#4b2fb0; }
+  .pc-foot { padding: 18px 24px; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid var(--line); flex-wrap: wrap; }
+  .pc-foot .left { margin-right:auto; font-size:12px; color:var(--ink-soft); align-self:center; }
+
+  @media (max-width: 1100px) { .grid-2 { grid-template-columns:1fr; } .tiles { grid-template-columns:1fr; } }
+  @media (max-width: 1024px) {
+    .app { grid-template-columns: 76px 1fr; }
+    .brand .name, .nav-group-label, .nav-item span.t, .nav-item .badge, .nav-item .ai-badge { display: none; }
+    .nav-item { justify-content: center; padding: 12px; } .brand { justify-content: center; padding: 4px 0 18px; }
+  }
+  @media (max-width: 720px) {
+    .search, .profile .who { display:none; }
+    .consent-banner { grid-template-columns: 1fr; } .consent-actions { justify-content:stretch; } .consent-actions .btn { flex:1; }
+    .ai-prompt h2 { font-size:21px; }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand"><span class="mark" aria-hidden="true"></span><span class="name">itslearning<small>Sanoma Learning</small></span></div>
+    <button class="nav-item active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/></svg><span class="t">Dashboard</span></button>
+    <button class="nav-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4z"/><path d="M4 9h16M9 5v14"/></svg><span class="t">My courses</span></button>
+    <button class="nav-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg><span class="t">Planner</span></button>
+    <button class="nav-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="9" width="3" height="9"/><rect x="13" y="5" width="3" height="13"/></svg><span class="t">Gradebook</span></button>
+    <button class="nav-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg><span class="t">Insights</span></button>
+    <button class="nav-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="t">Messages</span><span class="badge">4</span></button>
+
+    <div class="nav-group-label">Teaching tools</div>
+    <button class="nav-item" onclick="openPreferenceCenter()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.6 4.6L18 9l-4.4 1.4L12 15l-1.6-4.6L6 9l4.4-1.4z"/><path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8z"/></svg><span class="t">AI tools</span><span class="ai-badge">NEW</span></button>
+    <button class="nav-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span class="t">Library</span></button>
+
+    <div class="nav-spacer"></div>
+    <div class="nav-help"><button class="nav-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.7M12 17h.01"/></svg><span class="t">Help</span></button></div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <header class="topbar">
+      <div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg><input type="search" placeholder="Search courses, students, resources…" aria-label="Search" /></div>
+      <div class="top-actions">
+        <button class="top-icon" aria-label="Calendar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></button>
+        <button class="top-icon" aria-label="Notifications"><span class="dot"></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
+        <div style="position:relative;">
+          <button class="profile" id="profileBtn" aria-haspopup="true" aria-expanded="false">
+            <span class="avatar">DO</span>
+            <span class="who"><b>Daniel Okonkwo</b><span>Teacher · Mathematics</span></span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="menu" id="profileMenu" role="menu">
+            <button class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg> My profile</button>
+            <button class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8M4.6 9A1.6 1.6 0 0 0 3 7"/></svg> Account settings</button>
+            <div class="sep"></div>
+            <!-- ONETRUST INTEGRATION POINT #2 — UCPM PREFERENCE TRIGGER -->
+            <button class="mi privacy ot-sdk-show-settings" onclick="openPreferenceCenter()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg>
+              AI features &amp; consent
+            </button>
+            <div class="sep"></div>
+            <button class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg> Log out</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="content" id="content">
+      <div class="greeting">
+        <div><h1>Good morning, Daniel 👋</h1><p>You teach 4 classes · 112 students · 8 submissions awaiting feedback.</p></div>
+        <button class="quick-add"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Quick add</button>
+      </div>
+
+      <!-- AI consent prompt -->
+      <section class="ai-prompt">
+        <span class="tag">✦ NEW · AI features</span>
+        <h2>AI-powered teaching tools are now available</h2>
+        <p>Features like the AI feedback assistant and question generator can process student work. Before you switch them on for a class, review what data is used and make sure the required consent is in place — including parental consent for students under the age of consent.</p>
+        <div class="cta">
+          <button class="btn btn-violet" onclick="openPreferenceCenter()">Review AI features &amp; consent</button>
+          <button class="btn btn-ghost-light" onclick="showTab(null,'tab-collect'); openPreferenceCenter();">View class consent status</button>
+        </div>
+      </section>
+
+      <!-- Stat tiles -->
+      <div class="tiles">
+        <div class="tile"><div class="lbl">✦ AI features enabled</div><div class="big">2 <em>of 4</em></div><div class="sub">2 awaiting consent before activation</div></div>
+        <div class="tile"><div class="lbl">🛡 Consent collected</div><div class="big">86<em>%</em></div><div class="sub">96 of 112 students across your classes</div></div>
+        <div class="tile"><div class="lbl">⏳ Consent pending</div><div class="big">16</div><div class="sub">Requests sent to parents/guardians</div></div>
+      </div>
+
+      <div class="grid-2">
+        <!-- LEFT: AI features -->
+        <div class="card">
+          <div class="card-head">
+            <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="2"><path d="M12 3l1.6 4.6L18 9l-4.4 1.4L12 15l-1.6-4.6L6 9z"/></svg> AI features</h2>
+            <button class="link" onclick="openPreferenceCenter()">Manage all</button>
+          </div>
+          <div class="feat">
+            <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h8M8 13h5"/></svg></div>
+            <div class="fx"><b>AI feedback assistant</b><p>Drafts feedback on student submissions for you to review.</p></div>
+            <span class="status on">Enabled</span>
+          </div>
+          <div class="feat">
+            <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.7M12 17h.01"/></svg></div>
+            <div class="fx"><b>AI question generator</b><p>Creates quiz questions aligned to your course material.</p></div>
+            <span class="status on">Enabled</span>
+          </div>
+          <div class="feat">
+            <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20l-7-4V8l7-4 7 4v8z"/><path d="M5 8l7 4 7-4M12 12v8"/></svg></div>
+            <div class="fx"><b>Adaptive recommendations</b><p>Suggests next resources per student based on progress.</p></div>
+            <span class="status pending">Consent pending</span>
+          </div>
+          <div class="feat">
+            <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M9 13h6M9 16h4"/></svg></div>
+            <div class="fx"><b>AI lesson planner</b><p>Generates lesson plans you can edit. No student data used.</p></div>
+            <span class="status off">Off</span>
+          </div>
+        </div>
+
+        <!-- RIGHT: class consent overview -->
+        <div class="card">
+          <div class="card-head"><h2>🛡 Consent by class</h2><button class="link" onclick="showTab(null,'tab-collect'); openPreferenceCenter();">Details</button></div>
+          <div id="classlist"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ===== PLACEHOLDER consent banner (AI-focused) — replace with OneTrust ===== -->
+<div class="consent-banner" id="demo-consent-banner" role="dialog" aria-label="AI features and consent">
+  <div class="bicon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.6 4.6L18 9l-4.4 1.4L12 15l-1.6-4.6L6 9z"/></svg></div>
+  <div>
+    <h3>AI features &amp; your data</h3>
+    <p>This platform offers AI-powered features that may process your data and your students' work. You decide which AI uses you allow, and consent is required before student data is processed. Manage choices any time under <strong>AI features &amp; consent</strong>. <a href="#">AI &amp; privacy notice</a>.</p>
+  </div>
+  <div class="consent-actions">
+    <button class="btn btn-ghost" onclick="openPreferenceCenter()">Review AI features</button>
+    <button class="btn btn-ghost" onclick="dismissBanner('reject')">Reject AI uses</button>
+    <button class="btn btn-primary" onclick="dismissBanner('accept')">Accept all</button>
+  </div>
+</div>
+
+<!-- ===== PLACEHOLDER UCPM preference center (AI consent) — replace with OneTrust ===== -->
+<dialog class="pref-center" id="demo-pref-center" aria-label="AI features and consent">
+  <div class="pc-head">
+    <div class="row">
+      <div>
+        <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="2"><path d="M12 3l1.6 4.6L18 9l-4.4 1.4L12 15l-1.6-4.6L6 9z"/></svg> AI features &amp; consent</h3>
+        <p>Signed in as Daniel Okonkwo · choices generate a consent receipt and are saved to your profile.</p>
+      </div>
+      <button class="top-icon" aria-label="Close" onclick="document.getElementById('demo-pref-center').close()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="pc-tabs">
+      <button class="pc-tab active" onclick="showTab(event,'tab-features')">AI features</button>
+      <button class="pc-tab" onclick="showTab(event,'tab-studentdata')">Student data &amp; AI</button>
+      <button class="pc-tab" onclick="showTab(event,'tab-collect')">Consent collection</button>
+    </div>
+  </div>
+
+  <div class="pc-body">
+    <!-- AI features (teacher enablement) -->
+    <div class="pc-panel active" id="tab-features">
+      <div class="pc-row"><div><b>AI feedback assistant</b><p>Drafts feedback on submissions for your review.</p><span class="legalbasis">Processes student work</span></div><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div>
+      <div class="pc-row"><div><b>AI question generator</b><p>Creates quizzes from your course material.</p><span class="legalbasis">No student data</span></div><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div>
+      <div class="pc-row"><div><b>Adaptive recommendations</b><p>Recommends resources based on each student's progress.</p><span class="legalbasis">Processes student work</span></div><label class="switch"><input type="checkbox" /><span class="track"></span></label></div>
+      <div class="pc-row"><div><b>AI lesson planner</b><p>Generates editable lesson plans from curriculum topics.</p><span class="legalbasis">No student data</span></div><label class="switch"><input type="checkbox" /><span class="track"></span></label></div>
+      <div class="pc-note violet">Features marked “Processes student work” stay inactive for any student until the required consent is collected (see the Consent collection tab).</div>
+    </div>
+
+    <!-- Student data & AI (purposes) -->
+    <div class="pc-panel" id="tab-studentdata">
+      <div class="pc-row"><div><b>Process student submissions with AI</b><p>Allow student work to be analysed by AI features you enable.</p></div><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div>
+      <div class="pc-row"><div><b>Use approved third-party AI models</b><p>Some features rely on vetted external model providers acting as processors.</p></div><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div>
+      <div class="pc-row"><div><b>Improve AI models</b><p>Use de-identified student data to help improve model quality. Off by default.</p></div><label class="switch"><input type="checkbox" /><span class="track"></span></label></div>
+      <div class="pc-note">⚠ For students under the applicable age of consent, parental/guardian consent is required before any of these purposes are active. UCPM gates activation and records the consent receipt per student.</div>
+    </div>
+
+    <!-- Consent collection (the UCPM value story) -->
+    <div class="pc-panel" id="tab-collect">
+      <p style="font-size:13px;color:var(--ink-soft);padding:8px 0 4px;">Track and collect the consent required to use AI features that process student data. Requests go to parents/guardians for students under the age of consent.</p>
+      <div id="collectlist"></div>
+      <div class="pc-note violet">Each granted consent is stored as a timestamped, versioned receipt — auditable and withdrawable at any time, fulfilling the record-of-consent requirement.</div>
+    </div>
+  </div>
+
+  <div class="pc-foot">
+    <span class="left">Last updated just now · v2.1 AI notice</span>
+    <button class="btn btn-ghost" onclick="sendRequests()">Send consent requests</button>
+    <button class="btn btn-primary" onclick="dismissBanner('save'); document.getElementById('demo-pref-center').close();">Save choices</button>
+  </div>
+</dialog>
+
+<script>
+  /* ---------- Class consent data (cosmetic placeholders) ---------- */
+  const classes = [
+    { n:"Mathematics 10A", total:28, ok:26, pend:2, dec:0 },
+    { n:"Mathematics 10B", total:30, ok:21, pend:7, dec:2 },
+    { n:"Mathematics 9C", total:27, ok:25, pend:2, dec:0 },
+    { n:"Statistics (elective)", total:27, ok:24, pend:5, dec:0 },
+  ];
+  const pc = (v,t) => (v/t*100).toFixed(0);
+  document.getElementById("classlist").innerHTML = classes.map(c => `
+    <div class="cls">
+      <div class="top"><b>${c.n}</b><span>${c.ok}/${c.total} consented</span></div>
+      <div class="meter">
+        <i class="ok" style="width:${pc(c.ok,c.total)}%"></i>
+        <i class="pend" style="width:${pc(c.pend,c.total)}%"></i>
+        <i class="dec" style="width:${pc(c.dec,c.total)}%"></i>
+      </div>
+      <div class="legend"><span><i style="background:var(--green)"></i>Consented ${c.ok}</span><span><i style="background:var(--amber)"></i>Pending ${c.pend}</span><span><i style="background:var(--red)"></i>Declined ${c.dec}</span></div>
+    </div>`).join("");
+
+  /* consent collection roster (subset, demo) */
+  const roster = [
+    { n:"Aisha Khan", c:"Math 10A", st:"ok", color:"#2f6df0" },
+    { n:"Mateo Rossi", c:"Math 10B", st:"pending", color:"#7a5cff" },
+    { n:"Lena Vogel", c:"Math 10B", st:"declined", color:"#ff4438" },
+    { n:"Yuki Tanaka", c:"Math 9C", st:"ok", color:"#12b3a6" },
+    { n:"Omar Haddad", c:"Statistics", st:"pending", color:"#1faf6b" },
+    { n:"Sofía Núñez", c:"Math 10A", st:"ok", color:"#f6a623" },
+  ];
+  const statusChip = s => s==="ok" ? '<span class="status on">Consented</span>' : s==="pending" ? '<span class="status pending">Pending</span>' : '<span class="status off" style="background:#fdeaea;color:#b42318">Declined</span>';
+  const ini = n => n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+  document.getElementById("collectlist").innerHTML =
+    '<div class="roster" style="margin:6px -24px 0; border-top:1px solid var(--line-soft)">' +
+    roster.map(r => `
+      <div class="r">
+        <span class="ava" style="background:${r.color}">${ini(r.n)}</span>
+        <span class="rn">${r.n}<span>${r.c}</span></span>
+        ${statusChip(r.st)}
+      </div>`).join("") + '</div>';
+
+  /* ---------- account menu ---------- */
+  const pBtn = document.getElementById("profileBtn"), pMenu = document.getElementById("profileMenu");
+  pBtn.addEventListener("click", e => { e.stopPropagation(); const o = pMenu.classList.toggle("open"); pBtn.setAttribute("aria-expanded", o); });
+  document.addEventListener("click", () => pMenu.classList.remove("open"));
+  pMenu.addEventListener("click", e => e.stopPropagation());
+
+  /* =========================================================== */
+  /*  PLACEHOLDER CONSENT LOGIC — swap for OneTrust UCPM calls.    */
+  /*    OneTrust.ToggleInfoDisplay()    -> open Preference Center  */
+  /*    window.OnetrustActiveGroups     -> read active purposes    */
+  /*    OneTrust.OnConsentChanged(fn)    -> gate AI feature on/off  */
+  /*  (Use UCPM Purposes + Consent Receipts for the AI consents.)  */
+  /* =========================================================== */
+  function openPreferenceCenter() { pMenu.classList.remove("open"); document.getElementById("demo-pref-center").showModal(); }
+  function dismissBanner(choice) { document.getElementById("demo-consent-banner").hidden = true; console.log("[demo consent] choice =", choice); }
+  function sendRequests() { alert("Demo: consent requests would be sent to parents/guardians of pending students (UCPM collection flow)."); }
+  function showTab(e, id) {
+    document.querySelectorAll(".pc-tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".pc-panel").forEach(p => p.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    if (e && e.currentTarget) e.currentTarget.classList.add("active");
+    else { const map={'tab-features':0,'tab-studentdata':1,'tab-collect':2}; document.querySelectorAll('.pc-tab')[map[id]].classList.add('active'); }
+  }
+</script>
+</body>
+</html>
