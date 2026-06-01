@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- ===== START: OneTrust Consent Receipt SDK (loader for embedded web forms) ===== -->
+<script>
+  window.OtSdk = window.OtSdk || function () {
+    (OtSdk.q = OtSdk.q || []).push(arguments);
+  };
+</script>
+<script
+  src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
+  data-id="89af9315-196c-45ad-88ea-1b8ec3fe5a51"
+  worker="https://consent-api.onetrust.com"
+></script>
+<!-- ===== END: OneTrust Consent Receipt SDK ===== -->
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#1b1d3a" />
@@ -223,49 +235,78 @@
     .ai-prompt h2 { font-size:21px; }
   }
 
-  /* ── Hover popup for OT webform ── */
-  .hover-popup-wrapper { position: relative; display: inline-block; }
-  .hover-popup {
-    display: none;
-    position: absolute;
-    bottom: calc(100% + 12px);
-    left: 50%;
-    transform: translateX(-50%);
-    min-width: 340px;
-    min-height: 200px;
+  /* ── OneTrust webform popup (hover on "Review AI features") ── */
+  .ot-signup-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+  .ot-signup-popup {
+    position: fixed;
+    top: -10000px;
+    left: -10000px;
+    z-index: 999999;
+    width: 400px;
+    max-width: calc(100vw - 24px);
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
     background: #fff;
     border: 1px solid var(--line);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    padding: 20px;
-    z-index: 100;
-    text-align: center;
-  }
-  .hover-popup::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 10px solid transparent;
-    border-top-color: #fff;
-  }
-  .hover-popup-wrapper:hover .hover-popup { display: block; }
-  .hover-popup .ot-open-webform {
-    background: var(--violet);
-    color: #fff;
-    border: 0;
-    border-radius: 999px;
-    padding: 12px 24px;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
+    padding: 24px 24px 20px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-6px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
     font-family: var(--font-body);
   }
-  .hover-popup .ot-open-webform:hover { background: var(--brand); }
+  .ot-signup-wrapper.is-open .ot-signup-popup {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  .ot-signup-popup-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-soft);
+    font-size: 20px;
+    line-height: 1;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ot-signup-popup-close:hover,
+  .ot-signup-popup-close:focus {
+    background: var(--canvas);
+    color: var(--ink);
+    outline: none;
+  }
+  .ot-signup-popup-title {
+    margin: 0 28px 6px 0;
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .ot-signup-popup-text {
+    margin: 0 0 16px 0;
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .ot-signup-onetrust-mount {
+    min-height: 40px;
+  }
 
   </style>
-<script src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js" data-id="89af9315-196c-45ad-88ea-1b8ec3fe5a51" worker="https://consent-api.onetrust.com"></script>
 </head>
 <body>
 <a class="skip-link" href="#content">Skip to content</a>
@@ -330,11 +371,13 @@
         <h2>AI-powered teaching tools are now available</h2>
         <p>Features like the AI feedback assistant and question generator can process student work. Before you switch them on for a class, review what data is used and make sure the required consent is in place — including parental consent for students under the age of consent.</p>
         <div class="cta">
-          <div class="hover-popup-wrapper">
-            <button class="btn btn-violet">Review AI features &amp; consent</button>
-            <div class="hover-popup">
-              <p style="font-size:14px;color:var(--ink);margin-bottom:14px;font-weight:600;">Manage your AI consent preferences</p>
-              <button class="ot-open-webform" id="bb185c98-dab5-42c9-97d9-550ef2d12a5a">Open web form</button>
+          <div class="ot-signup-wrapper" data-ot-signup>
+            <button type="button" class="btn btn-violet ot-signup-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="ot-signup-popup-ai">Review AI features &amp; consent</button>
+            <div class="ot-signup-popup" id="ot-signup-popup-ai" role="dialog" aria-labelledby="ot-signup-popup-title-ai">
+              <button type="button" class="ot-signup-popup-close" aria-label="Close">&times;</button>
+              <h3 class="ot-signup-popup-title" id="ot-signup-popup-title-ai">Manage your AI consent preferences</h3>
+              <p class="ot-signup-popup-text">Review and update your consent choices for AI-powered features. Your preferences are saved as a timestamped consent receipt.</p>
+              <div id="ot-container" class="ot-signup-onetrust-mount"></div>
             </div>
           </div>
           <button class="btn btn-ghost-light" onclick="showTab(null,'tab-collect'); openPreferenceCenter();">View class consent status</button>
@@ -501,5 +544,154 @@
     else { const map={'tab-features':0,'tab-studentdata':1,'tab-collect':2}; document.querySelectorAll('.pc-tab')[map[id]].classList.add('active'); }
   }
 </script>
+
+<!-- ===== START: OneTrust web form install ===== -->
+<script>
+(function () {
+  var CP_ID = "bb185c98-dab5-42c9-97d9-550ef2d12a5a";
+
+  function whenOTReady(callback) {
+    var timer = setInterval(function () {
+      if (window.OneTrust && window.OneTrust.webform && window.OneTrust.webform.InstallCP) {
+        clearInterval(timer);
+        callback();
+      }
+    }, 80);
+  }
+
+  function install() {
+    whenOTReady(function () {
+      OneTrust.webform.InstallCP(CP_ID, {
+        target: "#ot-container"
+      });
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", install);
+  } else {
+    install();
+  }
+})();
+</script>
+<!-- ===== END: OneTrust web form install ===== -->
+
+<!-- ===== START: OneTrust popup hover / click behavior ===== -->
+<script>
+(function () {
+  document.querySelectorAll('[data-ot-signup]').forEach(function (wrapper) {
+    var trigger = wrapper.querySelector('.ot-signup-trigger');
+    var popup   = wrapper.querySelector('.ot-signup-popup');
+    var closeBtn = wrapper.querySelector('.ot-signup-popup-close');
+    if (!trigger || !popup) return;
+
+    var closeTimer = null;
+    var CLOSE_DELAY = 200;   // ms grace period for moving cursor to popup
+    var GAP  = 12;           // px between trigger and popup
+    var EDGE = 12;           // px viewport margin
+
+    /* ---- position the popup near the trigger ---- */
+    function positionPopup() {
+      // temporarily set to visible area so we can measure
+      popup.style.top  = '0px';
+      popup.style.left = '0px';
+
+      var tRect = trigger.getBoundingClientRect();
+      var pRect = popup.getBoundingClientRect();
+      var vw = window.innerWidth;
+      var vh = window.innerHeight;
+
+      // default: below the trigger
+      var top  = tRect.bottom + GAP;
+      var left = tRect.left;
+
+      // flip above if not enough space below
+      if (top + pRect.height > vh - EDGE) {
+        var topAbove = tRect.top - GAP - pRect.height;
+        if (topAbove >= EDGE) { top = topAbove; }
+        else { top = Math.max(EDGE, vh - pRect.height - EDGE); }
+      }
+      // clamp horizontally
+      if (left + pRect.width > vw - EDGE) { left = vw - pRect.width - EDGE; }
+      if (left < EDGE) { left = EDGE; }
+
+      popup.style.top  = top  + 'px';
+      popup.style.left = left + 'px';
+    }
+
+    function parkOffScreen() {
+      popup.style.top  = '-10000px';
+      popup.style.left = '-10000px';
+    }
+
+    /* ---- open / close ---- */
+    function open() {
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+      wrapper.classList.add('is-open');
+      trigger.setAttribute('aria-expanded', 'true');
+      requestAnimationFrame(positionPopup);
+    }
+
+    function scheduleClose() {
+      if (closeTimer) clearTimeout(closeTimer);
+      closeTimer = setTimeout(function () {
+        wrapper.classList.remove('is-open');
+        trigger.setAttribute('aria-expanded', 'false');
+        setTimeout(parkOffScreen, 200);
+      }, CLOSE_DELAY);
+    }
+
+    function closeNow() {
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+      wrapper.classList.remove('is-open');
+      trigger.setAttribute('aria-expanded', 'false');
+      setTimeout(parkOffScreen, 200);
+    }
+
+    /* ---- event listeners ---- */
+    trigger.addEventListener('mouseenter', open);
+    trigger.addEventListener('focus', open);
+    trigger.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (wrapper.classList.contains('is-open')) { closeNow(); } else { open(); }
+    });
+    trigger.addEventListener('mouseleave', scheduleClose);
+
+    popup.addEventListener('mouseenter', open);
+    popup.addEventListener('mouseleave', scheduleClose);
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeNow();
+      });
+    }
+
+    /* Escape key */
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && wrapper.classList.contains('is-open')) {
+        closeNow();
+        trigger.focus();
+      }
+    });
+
+    /* click outside */
+    document.addEventListener('click', function (e) {
+      if (!wrapper.contains(e.target) && wrapper.classList.contains('is-open')) { closeNow(); }
+    });
+
+    /* reposition on scroll / resize */
+    window.addEventListener('scroll', function () {
+      if (wrapper.classList.contains('is-open')) positionPopup();
+    }, true);
+    window.addEventListener('resize', function () {
+      if (wrapper.classList.contains('is-open')) positionPopup();
+    });
+  });
+})();
+</script>
+<!-- ===== END: OneTrust popup hover / click behavior ===== -->
+
 </body>
 </html>
