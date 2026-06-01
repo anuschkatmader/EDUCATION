@@ -255,8 +255,8 @@
         <button class="top-icon" aria-label="Notifications"><span class="dot"></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
         <div style="position:relative;">
           <button class="profile" id="profileBtn" aria-haspopup="true" aria-expanded="false">
-            <span class="avatar">DO</span>
-            <span class="who"><b>Daniel Okonkwo</b><span>Teacher · Mathematics</span></span>
+            <span class="avatar">AM</span>
+            <span class="who"><b>Anuschka Mader</b><span>Teacher · Mathematics</span></span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div class="menu" id="profileMenu" role="menu">
@@ -277,7 +277,7 @@
 
     <main class="content" id="content">
       <div class="greeting">
-        <div><h1>Good morning, Daniel 👋</h1><p>You teach 4 classes · 112 students · 8 submissions awaiting feedback.</p></div>
+        <div><h1>Good morning, Anuschka 👋</h1><p>You teach 4 classes · 112 students · 8 submissions awaiting feedback.</p></div>
         <button class="quick-add"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Quick add</button>
       </div>
 
@@ -338,27 +338,13 @@
   </div>
 </div>
 
-<!-- ===== PLACEHOLDER consent banner (AI-focused) — replace with OneTrust ===== -->
-<div class="consent-banner" id="demo-consent-banner" role="dialog" aria-label="AI features and consent">
-  <div class="bicon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.6 4.6L18 9l-4.4 1.4L12 15l-1.6-4.6L6 9z"/></svg></div>
-  <div>
-    <h3>AI features &amp; your data</h3>
-    <p>This platform offers AI-powered features that may process your data and your students' work. You decide which AI uses you allow, and consent is required before student data is processed. Manage choices any time under <strong>AI features &amp; consent</strong>. <a href="#">AI &amp; privacy notice</a>.</p>
-  </div>
-  <div class="consent-actions">
-    <button class="btn btn-ghost" onclick="openPreferenceCenter()">Review AI features</button>
-    <button class="btn btn-ghost" onclick="dismissBanner('reject')">Reject AI uses</button>
-    <button class="btn btn-primary" onclick="dismissBanner('accept')">Accept all</button>
-  </div>
-</div>
-
 <!-- ===== PLACEHOLDER UCPM preference center (AI consent) — replace with OneTrust ===== -->
 <dialog class="pref-center" id="demo-pref-center" aria-label="AI features and consent">
   <div class="pc-head">
     <div class="row">
       <div>
         <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="2"><path d="M12 3l1.6 4.6L18 9l-4.4 1.4L12 15l-1.6-4.6L6 9z"/></svg> AI features &amp; consent</h3>
-        <p>Signed in as Daniel Okonkwo · choices generate a consent receipt and are saved to your profile.</p>
+        <p>Signed in as Anuschka Mader · choices generate a consent receipt and are saved to your profile.</p>
       </div>
       <button class="top-icon" aria-label="Close" onclick="document.getElementById('demo-pref-center').close()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
@@ -456,7 +442,7 @@
   /*  (Use UCPM Purposes + Consent Receipts for the AI consents.)  */
   /* =========================================================== */
   function openPreferenceCenter() { pMenu.classList.remove("open"); document.getElementById("demo-pref-center").showModal(); }
-  function dismissBanner(choice) { document.getElementById("demo-consent-banner").hidden = true; console.log("[demo consent] choice =", choice); }
+  function dismissBanner(choice) { const b = document.getElementById("demo-consent-banner"); if (b) b.hidden = true; console.log("[demo consent] choice =", choice); }
   function sendRequests() { alert("Demo: consent requests would be sent to parents/guardians of pending students (UCPM collection flow)."); }
   function showTab(e, id) {
     document.querySelectorAll(".pc-tab").forEach(t => t.classList.remove("active"));
